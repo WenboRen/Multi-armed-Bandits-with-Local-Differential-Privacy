@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Jun  6 15:13:25 2020
 
-"""
 import numpy as np 
 import matplotlib.pyplot as plt 
 class ucb_bandit:
