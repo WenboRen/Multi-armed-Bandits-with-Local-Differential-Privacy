@@ -1,4 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Jun  6 15:13:25 2020
 
+"""
 import numpy as np 
 import matplotlib.pyplot as plt 
 class ucb_bandit:
@@ -153,152 +158,6 @@ class ucb_bandit_heter(ucb_bandit):
             return np.random.binomial(1,mu,1)
         if mu == 0.5:
             return np.random.uniform(0,1,1)
-        
-class ucb_bandit_heLDP(ucb_bandit):
-    def __init__(self, k, iters, mu, epsilon_min, type = None):
-        
-        # Average reward for each arm
-        self.mu = np.array(mu)
-        # Number of arms
-        self.k = k
-        # Number of iterations
-        self.iters = iters
-        # Step count
-        self.n = 1
-        # Total regret
-        self.total_regret = 0
-        self.regret = np.zeros(iters) 
-        # DP type
-        self.type = type
-        
-        self.N = np.zeros(self.k)
-        self.s = np.zeros(self.k)
-        self.A = np.zeros(self.k)
-        self.epsilon_min = epsilon_min
-    
-        
-    def generate_random_epsilon(self):
-        
-        epsilon = np.random.choice([0.01,0.2,1,2,1000], 1)
-        if epsilon > 100:
-            epsilon = 100
-        return epsilon
-    
-    def generate_normal_epsilon(self):
-        
-        mu = 1
-        sigma = 1
-        epsilon = np.random.normal(mu, sigma, 1)
-        if epsilon > 100:
-            epsilon = 100
-        elif epsilon < 0:
-            epsilon = 0.01
-        return epsilon
-        
-
-    def pull_CTB(self):
-        
-        
-        # Select action according to the Criteria
-        if self.n == 1:
-            a = np.random.choice(self.k, 1)
-        else:
-            a = np.argmax(self.s/self.N+ np.sqrt(
-                (2*np.log(self.n))*self.A / (self.N**2 )))
-        
-
-        self.n += 1   
-        reward = self.generate_reward(self.mu[a])
-        optimal_reward = self.generate_reward(0.9)
-            
-        
-        # Update total
-        self.total_regret = self.total_regret + optimal_reward - reward
-                      
-        # Generates random epsilon
-        epsilon = self.generate_random_epsilon()
-                      
-        # Using Bernoulli mechanism
-        mu_converted = (reward*np.exp(epsilon)+1-reward )/(1+np.exp(epsilon))
-        
-        reward_converted = np.random.binomial(1,mu_converted,1)
-       
-            
-        
-        # Comptute g-value
-        if reward_converted == 1:
-            g_value = 1/2*(1+(np.exp(epsilon)+1)/(np.exp(epsilon)-1))
-        else:
-            g_value = 1/2*(1-(np.exp(epsilon)+1)/(np.exp(epsilon)-1))
-            
-        #Update counts
-        if epsilon >= self.epsilon_min:
-            self.N[a] += 1
-            self.s[a] += g_value
-            self.A[a] += ( (np.exp(epsilon)+1)/(np.exp(epsilon)-1) )**2
-            
-            
-            
-            
-    def pull_CTL(self):
-        
-        th = 4*np.log(self.n)*(1/self.epsilon_min)**2
-        A_th = [(i,el) for (i,el) in enumerate(self.A) if el <= th]
-        
-        # Select action according to the Criteria
-        if self.n == 1:
-            a = np.random.choice(self.k, 1)
-        else:
-            if len(A_th) > 0:
-                temp = [i[0] for i in A_th]
-                a = np.random.choice(temp, 1)
-            else:
-                a = np.argmax(self.s/self.N+ np.sqrt(2*np.log(self.n)/self.N) + np.sqrt(
-                    (32*np.log(self.n))*self.A / (self.N**2 )))
-        
-
-        self.n += 1   
-        reward = self.generate_reward(self.mu[a])
-        optimal_reward = self.generate_reward(0.9)
-            
-        
-        # Update total
-        self.total_regret = self.total_regret + optimal_reward - reward
-                      
-        # Generates random epsilon
-        epsilon = self.generate_random_epsilon()
-                      
-        # Using Laplace mechanism
-        reward_converted = reward + np.random.laplace(0,1/epsilon,1)
-       
-            
-            
-        #Update counts
-        if epsilon >= self.epsilon_min:
-            self.N[a] += 1
-            self.s[a] += reward_converted
-            self.A[a] += ( 1/epsilon)**2
-        
-        
-        
-    
-    
-    def reset(self):
-        
-
-        # Resets results while keeping settings
-        self.n = 1
-        self.N = np.zeros(self.k)
-        self.s = np.zeros(self.k)
-        self.A = np.zeros(self.k)
-        self.total_regret = 0
-        self.regret = np.zeros(self.iters)
-
-
-
-    
-        
-    
             
 class ucb_bandit_gaussian(ucb_bandit):
     def generate_reward(self, mu):
@@ -422,25 +281,6 @@ def experiment_with_epsilon(k, mu, epsilon_list, type, reward_type = 'Bern', ite
         Regrets_list.append(np.zeros(iters))
 
     for j in range(len(epsilon_list)):
-        for i in range(episodes): 
-            UCB_list[j].reset()
-            UCB_list[j].run()
-            Regrets_list[j] = Regrets_list[j] + (
-                UCB_list[j].regret - Regrets_list[j]) / (i + 1)
-
-    return Regrets_list
-
-
-def experiment_with_epsilon_min(k, mu, epsilon_min_list, type, iters=100000, episodes=100):
-    UCB_list = []
-    for i in range(len(epsilon_min_list)):
-        UCB_list.append(ucb_bandit_heLDP(k,iters, mu, epsilon_min_list[i],type))
-
-    Regrets_list = []
-    for _ in range(len(epsilon_min_list)):
-        Regrets_list.append(np.zeros(iters))
-
-    for j in range(len(epsilon_min_list)):
         for i in range(episodes): 
             UCB_list[j].reset()
             UCB_list[j].run()
