@@ -1,10 +1,11 @@
+#!/usr/bin/env python3
 
 import numpy as np 
 
-from DPclass import experiment_with_algorithms, experiment_with_epsilon, experiment_with_epsilon_min, plot_algorithms, plot_epsilon
+from DPclass import experiment_with_algorithms, experiment_with_epsilon, plot_algorithms, plot_epsilon
 
 
-def run_experiment(mu_array, iters, episodes, type_list, type, reward_type, epsilon, epsilon_list, epsilon_min_list):
+def run_experiment(mu_array, iters, episodes, type_list, type, reward_type, epsilon, epsilon_list):
    
     mu = np.hstack(mu_array)
     k = len(mu) # number of arms
@@ -13,10 +14,8 @@ def run_experiment(mu_array, iters, episodes, type_list, type, reward_type, epsi
                                                     iters,episodes)
     
     regrets_epsilon = experiment_with_epsilon(k,mu,epsilon_list,type,reward_type,iters,episodes)
-
-    regrets_epsilon_min = experiment_with_epsilon_min(k,mu,epsilon_min_list,type,reward_type,iters,episodes)
     
-    return [regrets_algorithms, regrets_epsilon, regrets_epsilon_min]
+    return [regrets_algorithms, regrets_epsilon]
     
     
   
@@ -30,22 +29,12 @@ def main():
     type = 'Laplace' # Other option is 'Bernoulli'
     epsilon = 0.5 # Privacy parameter
     epsilon_list = [1,2]
-    regrets_algorithms, regrets_epsilon, regrets_epsilon_min= run_experiment(mu_array,iters,episodes,
+    regrets_algorithms, regrets_epsilon = run_experiment(mu_array,iters,episodes,
                             type_list, type, reward_type, epsilon, epsilon_list)
     
     
     plot_algorithms(type_list,regrets_algorithms,iters)
     plot_epsilon(epsilon_list,regrets_epsilon,iters)
-    plot_epsilon(epsilon_min_list,regrets_epsilon_min,iters)
     
 if __name__ == "__main__":
     main()
-    
-    
-    
-    
-             
-    
-    
-    
-    
